@@ -45,8 +45,13 @@ class MIDIMessage:
             return 0
 
 
-class Input:
+class Input(threading.Thread):
     """Superclass for all MIDI message sources."""
+
+    def __init__(self, output: Output):
+        super().__init__()
+        self.output = output
+        self.start()
 
     def poll(self) -> bool:
         """Is there new data on wire?"""
@@ -59,6 +64,11 @@ class Input:
                 pass
         return []
 
+    def run(self):
+        while 1:
+            if self.poll():
+                self.output.put(self.get(1)[0])
+
 
 class Output:
     """Superclass for all MIDI message sinks."""
@@ -70,19 +80,24 @@ class Output:
         return
 
 
-class Filter(threading.Thread):
+class Filter(Output, threading.Thread):
     """Superclass for all MIDI filters."""
 
-    def __init__(self, input: Input, output: Output):
+    def __init__(self, output: Output):
         if not 'name' in self.__dict__:
             self.name = 'Passthru MIDI filter'
         super().__init__(name=self.name)
-        self.input = input
         self.output = output
         self.running = True
+        self.buffer = []
         self.start()
 
     def run(self):
         while self.running:
-            if self.input.poll():
-                self.output.put(self.input.get(1)[0])
+            if len(self.buffer):
+                m = self.buffer.pop()
+                self.output.put(m[0])
+                m[1](m[0])
+
+    def put(self, message: MIDIMessage, callback: callable = None):
+        self.buffer.append([message, callback])
