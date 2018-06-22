@@ -74,7 +74,8 @@ class Filter(threading.Thread):
     """Superclass for all MIDI filters."""
 
     def __init__(self, input: Input, output: Output):
-        self.name = 'Passthru MIDI filter'
+        if not 'name' in self.__dict__:
+            self.name = 'Passthru MIDI filter'
         super().__init__(name=self.name)
         self.input = input
         self.output = output
