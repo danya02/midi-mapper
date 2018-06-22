@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+import threading
+
 
 class MIDIMessage:
     """Describes a single status+data group on wire."""
@@ -63,4 +65,23 @@ class Output:
 
     def put(self, message: MIDIMessage, callback: callable = None):
         """Send this MIDI message on wire. When done sending. run the callback with the message as parameter."""
+        if callback is not None:
+            callback(message)
         return
+
+
+class Filter(threading.Thread):
+    """Superclass for all MIDI filters."""
+
+    def __init__(self, input: Input, output: Output):
+        self.name = 'Passthru MIDI filter'
+        super().__init__(name=self.name)
+        self.input = input
+        self.output = output
+        self.running = True
+        self.start()
+
+    def run(self):
+        while self.running:
+            if self.input.poll():
+                self.output.put(self.input.get(1)[0])
