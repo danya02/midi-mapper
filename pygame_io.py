@@ -7,6 +7,8 @@ class PygameInput(common.Input):
     """Interface to Input of pygame.midi."""
 
     def __init__(self, id: int):
+        pygame.init()
+        pygame.midi.init()
         self.input = pygame.midi.Input(id)
 
     def poll(self):
@@ -31,6 +33,8 @@ class PygameOutput(common.Output):
     """Interface to Output of pygame.midi."""
 
     def __init__(self, id: int):
+        pygame.init()
+        pygame.midi.init()
         self.output = pygame.midi.Output(id, latency=0)
 
     def put(self, message: common.MIDIMessage, callback: callable = None):

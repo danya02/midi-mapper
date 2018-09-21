@@ -48,7 +48,7 @@ class MIDIMessage:
 class Input(threading.Thread):
     """Superclass for all MIDI message sources."""
 
-    def __init__(self, output: Output):
+    def __init__(self, output):
         super().__init__()
         self.output = output
         self.start()
